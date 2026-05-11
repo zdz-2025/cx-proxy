@@ -22,8 +22,9 @@
 ### 1. 克隆仓库
 
 ```bash
-git clone https://github.com/your-username/cx-proxy.git
+git clone https://github.com/zdz-2025/cx-proxy.git
 cd cx-proxy
+node cx-proxy.js
 ```
 
 ### 2. 配置环境变量
@@ -33,9 +34,9 @@ cd cx-proxy
 ```bash
 # 必需：DeepSeek API 密钥
 UPSTREAM_API_KEY=your_deepseek_api_key_here
+UPSTREAM_BASE=https://api.deepseek.com
 
 # 可选配置
-UPSTREAM_BASE=https://api.deepseek.com
 UPSTREAM_MODEL_NAME=deepseek-chat
 UPSTREAM_MODEL_LIST=deepseek-chat,deepseek-coder
 UPSTREAM_TIMEOUT=60000
