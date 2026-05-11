@@ -22,7 +22,7 @@
 ### 1. 克隆仓库
 
 ```bash
-git clone https://github.com/zdz-2025/cx-proxy.git
+git clone https://github.com/HaoGe-2025/cx-proxy.git
 cd cx-proxy
 node cx-proxy.js
 ```
