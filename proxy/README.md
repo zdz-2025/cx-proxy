@@ -34,11 +34,11 @@ node cx-proxy.js
 ```bash
 # 必需：DeepSeek API 密钥
 UPSTREAM_API_KEY=your_deepseek_api_key_here
-UPSTREAM_BASE=https://api.deepseek.com
+UPSTREAM_BASE=https://api.deepseek.com  #示例
 
 # 可选配置
-UPSTREAM_MODEL_NAME=deepseek-chat
-UPSTREAM_MODEL_LIST=deepseek-chat,deepseek-coder
+UPSTREAM_MODEL_NAME=deepseek-chat #示例
+UPSTREAM_MODEL_LIST=deepseek-chat,deepseek-coder #示例
 UPSTREAM_TIMEOUT=60000
 ```
 
