@@ -1,6 +1,6 @@
 # CX Proxy
 
-一个轻量级的 Node.js HTTP 代理服务器，将 OpenAI 兼容的 API 请求转换为 codex 调用。作为本地网关运行，无需 npm 依赖，单文件部署。
+一个轻量级的 Node.js HTTP 代理服务器，将 OpenAI 兼容的 API 请求转换为 codex 调用。作为本地网关运行，无需 npm 依赖，单文件部署。目前仅支持普通对话，代码及链接的读取还未实现。
 
 ## ✨ 特性
 
@@ -33,9 +33,9 @@ cd cx-proxy
 ```bash
 # 必需：DeepSeek API 密钥
 UPSTREAM_API_KEY=your_deepseek_api_key_here
+UPSTREAM_BASE=https://api.deepseek.com #示例
 
 # 可选配置
-UPSTREAM_BASE=https://api.deepseek.com
 UPSTREAM_MODEL_NAME=deepseek-chat
 UPSTREAM_MODEL_LIST=deepseek-chat,deepseek-coder
 UPSTREAM_TIMEOUT=60000
