@@ -13,7 +13,7 @@ Single `proxy.js` file (no framework, no dependencies) with these layers:
 - **HTTP server** (line 303): Node.js built-in `http.createServer`, listens on `127.0.0.1:3000`
 - **Routes**: `GET /v1/models`, `POST /v1/chat/completions`, `POST /v1/responses`
 - **Chat Completions path**: streams (SSE) or buffers request to upstream `/v1/chat/completions`
-- **Responses API path** (line 356): Converts OpenAI `/v1/responses` format to chat completions, then converts the upstream response back to SSE events (`response.created`, `response.content_part.added`, `response.output_text.delta`, `response.completed`, etc.)
+- **Responses API path**: Converts OpenAI `/v1/responses` format to chat completions, then converts the upstream response back to SSE events (streaming) or JSON (non-streaming)
 - **Model name handling**: `sanitizeModel()` strips context-size markers like `[1m]`, `[128k]` from model names
 
 ## Configuration (all env vars)
