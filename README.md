@@ -1,6 +1,6 @@
 # CX Proxy
 
-一个轻量级的 Node.js HTTP 代理服务器，将 OpenAI 兼容的 API 请求转换为 codex 调用。作为本地网关运行，无需 npm 依赖，单文件部署。目前仅能实现基本对话功能，复杂的代码读取，链接读取尚未能实现。
+一个轻量级的 Node.js HTTP 代理服务器，将 OpenAI 兼容的 API 请求转换为 codex 调用。作为本地网关运行，无需 npm 依赖，单文件部署。
 
 ## ✨ 特性
 
@@ -22,7 +22,7 @@
 ### 1. 克隆仓库
 
 ```bash
-git clone https://github.com/HaoGao-2025/cx-proxy.git
+git clone https://github.com/your-username/cx-proxy.git
 cd cx-proxy
 ```
 
@@ -31,11 +31,11 @@ cd cx-proxy
 创建 `.env` 文件（或直接设置系统环境变量）：
 
 ```bash
-# 必需：MODEL URL API 密钥
-UPSTREAM_API_KEY=your_model_api_key_here
-UPSTREAM_BASE=your_model_URL_here
-# 可选配置
+# 必需：DeepSeek API 密钥
+UPSTREAM_API_KEY=your_deepseek_api_key_here
 
+# 可选配置
+UPSTREAM_BASE=https://api.deepseek.com
 UPSTREAM_MODEL_NAME=deepseek-chat
 UPSTREAM_MODEL_LIST=deepseek-chat,deepseek-coder
 UPSTREAM_TIMEOUT=60000
@@ -61,12 +61,25 @@ node proxy.js
 |---------|------|--------|
 | `UPSTREAM_BASE` | 上游 API 基础 URL | `https://api.deepseek.com` |
 | `UPSTREAM_API_KEY` | API 密钥（必需） | - |
-| `DEEPSEEK_API_KEY` | API 密钥（备用） | - |
+
 | `UPSTREAM_MODEL_NAME` | 覆盖发送到上游的模型名称 | - |
 | `UPSTREAM_MODEL_LIST` | `/v1/models` 端点返回的模型 ID 列表（逗号分隔） | - |
 | `UPSTREAM_TIMEOUT` | 上游请求超时时间（毫秒） | `60000` |
 
 ## 📡 API 端点
+
+### GET /health
+健康检查端点，返回服务状态。
+
+**示例：**
+```bash
+curl http://127.0.0.1:3000/health
+```
+
+**响应：**
+```json
+{ "status": "ok" }
+```
 
 ### GET /v1/models
 获取可用模型列表
@@ -201,7 +214,7 @@ HH:MM:SS.ms METHOD /path STATUS model XXms
 - 检查网络连接
 
 ### 认证失败
-- 确认 `UPSTREAM_API_KEY` 或 `DEEPSEEK_API_KEY` 已正确设置
+- 确认 `UPSTREAM_API_KEY` 已正确设置
 - 验证 API 密钥是否有效
 
 ## 📄 许可证

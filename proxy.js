@@ -332,73 +332,92 @@ function processFunctionCall(itemId, outputIndex, contentIndex, call) {
   return { buf, doneContent: { type: "function_call", id: call.id, name: call.name, arguments: call.arguments, status: "completed" } };
 }
 
-function buildSSE(dsRes) {
+function buildResponseOutput(dsRes) {
   const respId = generateId("resp_");
   const ts = Math.floor(Date.now() / 1000);
   const choices = dsRes.choices || [];
   const model = dsRes.model || "default";
-
   const outputItems = [];
-  let buf = "";
 
-  buf += createResponseCreatedEvent(respId, ts, model);
-
-  choices.forEach((choice, choiceIndex) => {
+  for (const [choiceIndex, choice] of choices.entries()) {
     const msg = choice?.message || {};
     const text = msg.content || "";
     const toolCalls = msg.tool_calls || [];
 
     const items = [];
     if (text) items.push({ type: "output_text", text });
-    items.push(...toolCalls.map(tc => ({ 
-      type: "function_call", 
-      id: tc.id, 
-      name: tc.function.name, 
-      arguments: tc.function.arguments 
-    })));
-
-    if (items.length === 0) {
-      return;
+    for (const tc of toolCalls) {
+      items.push({ type: "function_call", id: tc.id, name: tc.function.name, arguments: tc.function.arguments });
     }
 
-    const outputIndex = choiceIndex;
+    if (items.length === 0) continue;
+
     const itemId = generateId("item_");
     const doneContent = [];
 
-    buf += createOutputItemAddedEvent(itemId, outputIndex);
-
-    items.forEach((item, index) => {
+    for (const item of items) {
       if (item.type === "output_text") {
-        const { buf: itemBuf, doneContent: dc } = processTextContent(itemId, outputIndex, index, item.text);
-        buf += itemBuf;
-        doneContent.push(dc);
+        doneContent.push({ type: "output_text", text: item.text, annotations: [] });
       } else if (item.type === "function_call") {
-        const { buf: itemBuf, doneContent: dc } = processFunctionCall(itemId, outputIndex, index, item);
-        buf += itemBuf;
-        doneContent.push(dc);
+        doneContent.push({ type: "function_call", id: item.id, name: item.name, arguments: item.arguments, status: "completed" });
       }
+    }
+
+    outputItems.push({
+      id: itemId, object: "realtime.item", type: "message",
+      status: "completed", role: "assistant", content: doneContent,
     });
-
-    buf += createOutputItemDoneEvent(itemId, outputIndex, doneContent);
-
-    outputItems.push({ 
-      id: itemId, 
-      object: "realtime.item", 
-      type: "message", 
-      status: "completed", 
-      role: "assistant", 
-      content: doneContent 
-    });
-  });
-
-  if (outputItems.length === 0) {
-    return createResponseCompletedEvent(respId, ts, model, "completed", [], mapUsage(dsRes.usage));
   }
 
   const finishStatus = choices.some(c => c?.finish_reason === "tool_calls") ? "incomplete" : "completed";
-  buf += createResponseCompletedEvent(respId, ts, model, finishStatus, outputItems, mapUsage(dsRes.usage));
+  return { respId, ts, model, outputItems, finishStatus, usage: mapUsage(dsRes.usage) };
+}
 
+function buildSSE(dsRes) {
+  const { respId, ts, model, outputItems, finishStatus, usage } = buildResponseOutput(dsRes);
+
+  if (outputItems.length === 0) {
+    return createResponseCompletedEvent(respId, ts, model, "completed", [], usage);
+  }
+
+  let buf = "";
+  buf += createResponseCreatedEvent(respId, ts, model);
+
+  for (let outputIndex = 0; outputIndex < outputItems.length; outputIndex++) {
+    const item = outputItems[outputIndex];
+    const itemId = item.id;
+
+    buf += createOutputItemAddedEvent(itemId, outputIndex);
+
+    for (let contentIndex = 0; contentIndex < item.content.length; contentIndex++) {
+      const part = item.content[contentIndex];
+      if (part.type === "output_text") {
+        const { buf: pBuf } = processTextContent(itemId, outputIndex, contentIndex, part.text);
+        buf += pBuf;
+      } else if (part.type === "function_call") {
+        const { buf: pBuf } = processFunctionCall(itemId, outputIndex, contentIndex, part);
+        buf += pBuf;
+      }
+    }
+
+    buf += createOutputItemDoneEvent(itemId, outputIndex, item.content);
+  }
+
+  buf += createResponseCompletedEvent(respId, ts, model, finishStatus, outputItems, usage);
   return buf;
+}
+
+function buildResponseJSON(dsRes) {
+  const { respId, ts, model, outputItems, finishStatus, usage } = buildResponseOutput(dsRes);
+  return {
+    id: respId,
+    object: "response",
+    created_at: ts,
+    model,
+    status: finishStatus,
+    output: outputItems,
+    usage,
+  };
 }
 
 // ── Streaming Responses API → Chat Completions SSE conversion ──
@@ -595,6 +614,11 @@ const server = http.createServer((req, res) => {
     logReq(req.method, url.pathname, res.statusCode, res._model || "-", Date.now() - start);
   });
 
+  // ── GET /health ──────────────────────────────────────────
+  if (req.method === "GET" && url.pathname === "/health") {
+    return sendJSON(res, 200, { status: "ok" });
+  }
+
   // ── GET /v1/models ──────────────────────────────────────
   if (req.method === "GET" && url.pathname === "/v1/models") {
     const modelIds = UPSTREAM_MODEL_LIST || UPSTREAM_MODEL_NAME || "default";
@@ -655,17 +679,12 @@ const server = http.createServer((req, res) => {
             if (!res.headersSent) sendJSON(res, 500, { error: { message: err.message, type: "proxy_error" } });
           });
         } else {
-          // 非流式：缓冲完整响应 → 转换 → 一次性发出 SSE 事件（原有逻辑）
+          // 非流式：缓冲完整响应 → 转换为 JSON Response 对象返回
           upstreamFetch(chatBody, req.headers).then((result) => {
             if (result.status !== 200) return sendJSON(res, result.status, result.body);
 
-            const sseBuf = buildSSE(result.body);
-            res.writeHead(200, {
-              "Content-Type": "text/event-stream",
-              "Cache-Control": "no-cache",
-              "Content-Length": Buffer.byteLength(sseBuf),
-            });
-            res.end(sseBuf);
+            const respObj = buildResponseJSON(result.body);
+            sendJSON(res, 200, respObj);
           }).catch((err) => {
             logError("upstreamFetch error", err);
             if (!res.headersSent) sendJSON(res, 500, { error: { message: err.message, type: "proxy_error" } });
