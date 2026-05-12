@@ -10,4 +10,4 @@
 🌐 CORS 支持：允许跨域请求
 📝 请求日志：详细的请求日志记录
 
-项目代码的编写，github的发布由claude-code和opencode共同完成，模型使用deepseek-v4-flash，含整个流程均在项目中体现。
+项目代码的编写由claude-code完成，github的发布由opencode完成，模型使用deepseek-v4-flash，代码编写及git发布推送整个流程均在项目中体现。
