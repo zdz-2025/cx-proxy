@@ -1,6 +1,6 @@
 # CX Proxy
 
-一个轻量级的 Node.js HTTP 代理服务器，将 OpenAI 兼容的 API 请求转换为 codex 调用。作为本地网关运行，无需 npm 依赖，单文件部署。
+一个轻量级的 Node.js HTTP 代理服务器，将 OpenAI 兼容的 API 请求转换为 codex 调用。作为本地网关运行，无需 npm 依赖，单文件部署。目前仅能实现基本对话功能，复杂的代码读取，链接读取尚未能实现。
 
 ## ✨ 特性
 
