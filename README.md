@@ -31,7 +31,7 @@ cd cx-proxy
 创建 `.env` 文件（或直接设置系统环境变量）：
 
 ```bash
-# 必需：DeepSeek API 密钥
+# 必需：MODEL URL API 密钥
 UPSTREAM_API_KEY=your_model_api_key_here
 UPSTREAM_BASE=your_model_URL_here
 # 可选配置
