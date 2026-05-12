@@ -22,7 +22,7 @@
 ### 1. 克隆仓库
 
 ```bash
-git clone https://github.com/your-username/cx-proxy.git
+git clone https://github.com/HaoGao-2025/cx-proxy.git
 cd cx-proxy
 ```
 
@@ -32,10 +32,10 @@ cd cx-proxy
 
 ```bash
 # 必需：DeepSeek API 密钥
-UPSTREAM_API_KEY=your_deepseek_api_key_here
-
+UPSTREAM_API_KEY=your_model_api_key_here
+UPSTREAM_BASE=your_model_URL_here
 # 可选配置
-UPSTREAM_BASE=https://api.deepseek.com
+
 UPSTREAM_MODEL_NAME=deepseek-chat
 UPSTREAM_MODEL_LIST=deepseek-chat,deepseek-coder
 UPSTREAM_TIMEOUT=60000
