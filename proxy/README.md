@@ -24,7 +24,7 @@
 ```bash
 git clone https://github.com/HaoGe-2025/cx-proxy.git
 cd cx-proxy
-node cx-proxy.js
+node proxy.js
 ```
 
 ### 2. 配置环境变量
